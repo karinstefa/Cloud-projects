@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+    
+    
+    <!-- Bootstrap Date-Picker Plugin -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/css/bootstrap-datepicker3.css"/>
+
+    <!-- Iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.0/font/bootstrap-icons.css">
+
+        <!-- Paginacion -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/paginationjs/2.1.4/pagination.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/paginationjs/2.1.4/pagination.css"/>
+
+    <title>Hello, world!</title>
+  </head>
+  <body>
+    
+
+    <!-- Optional JavaScript; choose one of the two! -->
+    <!-- Option 1: Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <!-- Option 2: Separate Popper and Bootstrap JS -->
+    <!--
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
+    -->
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="row align-items-center justify-content-center text-center">
+                <div class="col-8">
+                    <h1>Detalle del concurso <label id="NombredelConcurso"></label></h1>
+                </div>
+                <div class="col-4">
+                    <img style="height: 120px;" id="banner"/>
+                </div>
+            </div>
+            <div class="row align-items-center text-center">
+                <h4>Va desde el <label id="fecha_inicio"></label> hasta el <label id="fecha_fin"></label></h4>
+            </div>
+
+            <div class="row mx-4">
+                <div class="col-6">
+                    <label for="exampleFormControlInput1" class="form-label">Valor a pagar voz seleccionada</label>
+                </div>
+                <div class="col-6">
+                    <input id="valor_premio" disabled  type="text" class="form-control" id="exampleFormControlInput1" placeholder="$">
+                </div>
+            </div>
+            <div class="row mx-4 mt-2">
+                <div class="col-6">
+                    <label for="exampleFormControlInput1" class="form-label">Guion o texto que debe expresar la voz</label>
+                </div>
+                <div class="col-6">
+                    <input id="guion" type="text" disabled class="form-control" id="exampleFormControlInput1" placeholder="Escriba el guion">
+                </div> 
+            </div>
+            <div class="row mx-4 mt-2">
+                <div class="col-6">
+                    <label for="exampleFormControlInput1" class="form-label">Recomendaciones</label>
+                </div>
+                <div class="col-6">
+                    <input id="recomendaciones" disabled type="text" class="form-control" id="exampleFormControlInput1" placeholder="Escriba las recomendaciones que deben ser tenidas en cuenta por los locutores">
+                </div>
+            </div>
+            <div class="row mx-4 mt-2">
+                <div class="col-2">
+                    <label for="exampleFormControlInput1" class="form-label">URL</label>
+                </div>
+                <div class="col-10">
+                    <input id="URL_concurso" disabled type="text" class="form-control" id="exampleFormControlInput1" placeholder="...">
+                </div>
+            </div>
+            <div class="row">
+                <div class="mx-4">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th scope="col">E-mail</th>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Apellidos</th>
+                            <!-- <th scope="col">Fecha creacion</th> -->
+                            <th scope="col">Estado</th>
+                            <th scope="col">Original</th>
+                            <th scope="col">Convertido</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tabla-concursos">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="row align-items-center text-center justify-content-center">
+                <div id="pagination" class="col-8 d-flex justify-content-center"></div>
+            </div>
+            <div style="margin-top: 20px;" class="row justify-content-center form-group">
+                <button id="regresar" class="btn btn-primary  col-8">Regresar</button>
+            </div>
+        </div>
+    </div>
+    
+    <script type="text/javascript">
+        var id_buscar = "1";
+        const table = document.getElementById("tabla-concursos");
+
+        $(document).ready(async function(){
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+            id_buscar = urlParams.get('id')
+            let urlBase = 'http://172.24.41.218:8080/'
+            let URL = urlBase+'concurso/'+id_buscar
+            await fetch(URL)
+            .then(response=> {
+                if(!response.ok){
+                    throw Error(response.statusText);
+                }
+                return response.json();
+            })
+            .then(concurso=>{
+                // console.log(concurso.path_banner);
+                document.getElementById('NombredelConcurso').innerHTML = concurso.nombre;
+                document.getElementById('banner').src = concurso.path_banner;
+                document.getElementById('valor_premio').value = concurso.valor_premio;
+                document.getElementById('guion').value = concurso.guion;
+                document.getElementById('fecha_inicio').innerHTML = concurso.fecha_inicio;
+                document.getElementById('fecha_fin').innerHTML = concurso.fecha_fin;
+                document.getElementById('recomendaciones').value = concurso.recomendaciones;
+                document.getElementById('URL_concurso').value = concurso.url;
+            })
+            .catch(error => console.log(error) );
+            // Traer voces
+            console.log(urlBase+'voces')
+            await fetch(urlBase+'voces')
+            .then(response =>{
+                if(!response.ok){
+                    throw Error(response.statusText);
+                }
+                return response.json()
+            })
+            .then(async function(voces){
+                let container = $('#pagination');
+                console.log(voces);
+                voces = voces.sort((a,b) => a.fecha_creacion > b.fecha_creacion? 1 :-1)
+                const result = voces.filter(voz => voz.id_concurso == id_buscar);
+                container.pagination({  
+                    dataSource: result,
+                    pageSize: 20,
+                    callback: async function (data, pagination) {
+                        table.innerHTML='';
+                        $.each(data, function (index, voz) {
+                            let row = table.insertRow();
+                            let correo = row.insertCell(0); 
+                            let name = row.insertCell(1); 
+                            let apellidos= row.insertCell(2); 
+                            let Estado = row.insertCell(3); 
+                            let Original = row.insertCell(4); 
+                            let Convertido= row.insertCell(5); 
+
+                            correo.innerHTML = voz.correo;
+                            name.innerHTML = voz.nombres;
+                            apellidos.innerHTML = voz.apellidos;
+                            if( voz.estado == 0)
+                            {
+                                Estado.innerHTML = "En proceso";
+                                Convertido.innerHTML = "<button id='btn_c_"+voz.id+"' style='margin:5px;' class='btn btn-primary'><i class='bi bi-mic-mute'></i></button>";
+                            }
+                            else
+                            {
+                                Estado.innerHTML = 'Convertida';    
+                                Convertido.innerHTML = "<button id='btn_c_d_"+voz.id+"' style='margin:5px;' class='btn btn-primary'><i class='bi bi-download'></i></button>"+
+                                                    "<button id='btn_c_p_"+voz.id+"' style='margin:5px;' class='btn btn-primary'><i class='bi bi-mic-fill'></i></button>";
+                                $('#btn_c_d_'+voz.id).click(async function(){
+                                    await fetch(urlBase+'voces/convertido/'+voz.id)
+                                    .then(response => response.json())
+                                    .then(
+                                        data =>{
+                                            if(data.success)
+                                            {
+                                                const ext_file = voz.path_convertido.split('.').pop()
+                                                const downloadLink = document.createElement("a");
+                                                downloadLink.href = data.archivo;
+                                                downloadLink.download = 'fileName.'+ext_file;
+                                                downloadLink.click();
+                                            }
+                                        }
+                                    )
+                                    .catch(err=>console.error(err))
+                                });
+                                
+                                $('#btn_c_p_'+voz.id).click(async function(){
+                                    await fetch(urlBase+'voces/convertido/'+voz.id)
+                                    .then(response => response.json())
+                                    .then(
+                                        data =>{
+                                            if(data.success)
+                                            {
+                                                var snd = new Audio(data.archivo);
+                                                snd.play();
+                                            }
+                                        }
+                                    )
+                                    .catch(err=>console.error(err))
+                                });
+
+                            }
+                            Original.innerHTML = "<button id='btn_"+voz.id+"' style='margin:5px;' class='btn btn-primary'><i class='bi bi-download'></i></button>";
+
+                            $('#btn_'+voz.id).click(async function(){
+                                await fetch(urlBase+'voces/original/'+voz.id)
+                                .then(response => response.json())
+                                .then(
+                                    data =>{
+                                        if(data.success)
+                                        {
+                                            const ext_file = voz.path_original.split('.').pop()
+                                            const downloadLink = document.createElement("a");
+                                            downloadLink.href = data.archivo;
+                                            downloadLink.download = 'fileName.'+ext_file;
+                                            downloadLink.click();
+
+                                        }
+                                    }
+                                )
+                                .catch(err=>console.error(err))
+                            })
+                        });
+                    }
+                });
+            })
+            .catch(err=> console.error(err));
+        });
+        $("#regresar").click(()=>{
+            location.href = 'Listar_concursos.html';
+        });
+    </script>
+</body>
+</html>
