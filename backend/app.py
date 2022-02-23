@@ -177,8 +177,8 @@ class UnConcurso(Resource):
         db.session.commit()
         return {'message':'El concurso se edito correctamente'}
     def delete(self, id_concurso):
-        concurso = Concursos.query.get_or_404(id_concurso)
-        db.session.delete(concurso)
+        Concursos.query.get_or_404(id_concurso).delete()
+        Voces.query.filter_by(id_concurso=id_concurso).delete()
         db.session.commit()
         return 'Se borro exitosamente el concurso', 204
 
