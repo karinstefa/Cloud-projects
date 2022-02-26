@@ -1,7 +1,7 @@
 import os
 import smtplib
 from sqlalchemy import create_engine
-
+from datetime import datetime
 db_string = "postgresql://admin:123456@172.24.41.222:5432/project01"
 
 db = create_engine(db_string)
@@ -19,11 +19,12 @@ for r in result_set:
         if ext != 'mp3':
             cmd = f'ffmpeg -i {patho} {nombre}.mp3'
 
-            print(cmd)
+#            print(cmd)
+            print(datetime.now())
             try:
                 os.system(cmd)
             except Exception as e:
-                print(e)
+#                print(e)
             path_convertido = f'{nombre}.mp3'
         else:
             path_convertido = patho
@@ -34,7 +35,7 @@ for r in result_set:
             server.starttls()
             server.ehlo()
             server.login(gmail_user, gmail_password)
-            print("Loged ok")
+ #           print("Loged ok")
             # message to be sent   
             SUBJECT = "Estado concurso"   
             TEXT = "En hora buena hemos convertido tu voz, esta ya ha sido publicada en la pagina publica del concurso. Muchos exitos!!!"
@@ -47,10 +48,10 @@ for r in result_set:
             # msg = header + '\n En hora buena hemos convertido tu voz, esta ya ha sido publicada en la pagina publica del concurso. Muchos exitos!!!'
             
             server.sendmail(gmail_user, correo, message)   
-            print("send email ok")    
+ #           print("send email ok")    
             db.execute(f"UPDATE Voces SET Estado = 1, path_convertido='{path_convertido}' WHERE id = {r['id']}")
         except Exception as e:
-            print(e)
+  #          print(e)
 
 
     """
