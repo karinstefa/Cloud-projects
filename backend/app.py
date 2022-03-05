@@ -1,3 +1,4 @@
+#%%
 from datetime import datetime
 from flask import Flask
 from flask import request
@@ -7,13 +8,24 @@ from flask_marshmallow import Marshmallow
 from flask_restful import Api, Resource
 from flask_cors import CORS
 from sqlalchemy import false, true
-
+import socket
+#%%
 app = Flask(__name__)
 CORS(app)
 
+#%%
+ip_add= socket.gethostbyname(socket.gethostname())
+
+#%%
+host = 'database-2.cnjddgnl0ynw.us-east-1.rds.amazonaws.com'
+port = 5432
+user = 'postgres'
+password = 'cloud1234'
+database = 'db_concursos'
+
 # Inicilizacion de base de datos
 
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://admin:123456@172.24.41.222:5432/project01"
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://{user}:{password}@{host}:{port}/{database}"
 # base de datos
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
@@ -145,7 +157,7 @@ class getConcursoID(Resource):
         with open(concurso.path_banner, "rb") as image_file:
             img_64 = base64.b64encode(image_file.read())
         url = concurso.url
-        concurso.url = f'http://172.24.41.218/frontend/concursos.html?id={concurso.id}&concurso={url}'
+        concurso.url = f'http://{ip_add}/frontend/concursos.html?id={concurso.id}&concurso={url}'
 
         concurso.path_banner = f'data:image/{ext};base64,'+img_64.decode('utf-8')
         return concurso_schema.dump(concurso)
