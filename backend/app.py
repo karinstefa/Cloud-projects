@@ -14,18 +14,18 @@ app = Flask(__name__)
 CORS(app)
 
 #%%
-ip_add= socket.gethostbyname(socket.gethostname())
+ip_add = socket.gethostbyname(socket.gethostname())
 
 #%%
 host = 'database-2.cnjddgnl0ynw.us-east-1.rds.amazonaws.com'
-port = 5432
+port = '5432'
 user = 'postgres'
 password = 'cloud1234'
 database = 'db_concursos'
 
 # Inicilizacion de base de datos
 
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://{user}:{password}@{host}:{port}/{database}"
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:cloud1234@database-2.cnjddgnl0ynw.us-east-1.rds.amazonaws.com:5432/db_concursos"
 # base de datos
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
@@ -157,7 +157,7 @@ class getConcursoID(Resource):
         with open(concurso.path_banner, "rb") as image_file:
             img_64 = base64.b64encode(image_file.read())
         url = concurso.url
-        concurso.url = f'http://{ip_add}/frontend/concursos.html?id={concurso.id}&concurso={url}'
+        concurso.url = f'http://{ip_add}:8080/frontend/concursos.html?id={concurso.id}&concurso={url}'
 
         concurso.path_banner = f'data:image/{ext};base64,'+img_64.decode('utf-8')
         return concurso_schema.dump(concurso)
@@ -285,6 +285,10 @@ api.add_resource(getConcursoID,'/concurso/<int:id_concurso>')
 api.add_resource(TodosLasVoces, '/voces')
 api.add_resource(UnaVoz,'/voces/<int:id_voz>')
 
+@app.route("/")
+def test():
+    return 'hello'
+
 @app.route("/voces/original/<id_voz>")
 def obtenerVozOriginal(id_voz):
     voz = Voces.query.get_or_404(id_voz)
@@ -335,4 +339,6 @@ def obtenerVozConvertido(id_voz):
 
 
 if __name__ == '__main__':
-    app.run(debug=False,host="0.0.0.0", port=8080)
+    app.run(debug=True,host="0.0.0.0", port=8080)
+
+# %%
