@@ -120,7 +120,7 @@
             const queryString = window.location.search;
             const urlParams = new URLSearchParams(queryString);
             id_buscar = urlParams.get('id')
-            let urlBase = 'http://3.84.211.227:8080/'
+            let urlBase = 'http:/172.31.92.104:8080/'
             let URL = urlBase+'concurso/'+id_buscar
             await fetch(URL)
             .then(response=> {
@@ -167,7 +167,7 @@
                 observaciones: document.getElementById('observaciones').value
             }
 			console.log(jsondata);
-            fetch('http://3.84.211.227:8080/voces', {
+            fetch('http://172.31.92.104:8080/voces', {
                 method: 'POST',
                 headers: {
                 "Content-type": "application/json"
