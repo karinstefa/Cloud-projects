@@ -25,6 +25,7 @@ for r in result_set:
                 if(os.path.exists(patho)):
                     os.system(cmd)
             except Exception as e:
+                print('Error conversion:')
                 print(e)
             path_convertido = f'{nombre}.mp3'
         else:
@@ -52,6 +53,7 @@ for r in result_set:
             print("send email ok")    
             db.execute(f"UPDATE Voces SET Estado = 1, path_convertido='{path_convertido}' WHERE id = {r['id']}")
         except Exception as e:
+            print('Error envio:')
             print(e)
 
 
