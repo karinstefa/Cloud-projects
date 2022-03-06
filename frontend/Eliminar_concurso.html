@@ -91,7 +91,7 @@
             const queryString = window.location.search;
             const urlParams = new URLSearchParams(queryString);
             id_buscar = urlParams.get('id')
-            let URL = 'http://3.84.211.227:8080/concurso/'+id_buscar
+            let URL = 'http://172.31.92.104:8080/concurso/'+id_buscar
             fetch(URL)
             .then(response=> {
                 if(!response.ok){
@@ -111,7 +111,7 @@
             .catch(error => console.log(error) )
         });
         $("#aceptar").click(()=>{
-            let URL = 'http://3.84.211.227:8080/concursos/'+id_buscar
+            let URL = 'http://172.31.92.104:8080/concursos/'+id_buscar
             fetch(URL, {
                 method: 'DELETE'
             })
