@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+    
+    
+    <!-- Bootstrap Date-Picker Plugin -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/css/bootstrap-datepicker3.css"/>
+
+  
+    <title>Hello, world!</title>
+  </head>
+  <body>
+    
+
+    <!-- Optional JavaScript; choose one of the two! -->
+    <!-- Option 1: Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <!-- Option 2: Separate Popper and Bootstrap JS -->
+    <!--
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
+    -->
+    <div class="row justify-content-center">
+        <div class="col-7">
+            <h1>Editar los datos del concurso</h1>
+            <div id="lbl_error" class="alert alert-danger" >
+                <label class="form-label">Todos los datos son obligatorios</label>
+            </div>
+            <div class="mb-3 form-group">
+                <label for="exampleFormControlInput1" class="form-label">Nombre del concurso</label>
+                <input type="text" class="form-control" id="NombredelConcurso" placeholder="Escriba el nombre del concurso">
+            </div>
+
+            <!--<div class="mb-3">
+            <label for="exampleFormControlInput1" class="form-label">Categoría del Evento</label>
+            <select class="form-select" aria-label="Default select example" id="categoria">
+                <option selected>Elija la categoría del evento</option>
+                <option value="Conferencia">Conferencia</option>
+                <option value="Seminario">Seminario</option>
+                <option value="Congreso">Congreso</option>
+                <option value="Curso">Curso</option>
+            </select>
+            </div>-->
+
+            <div class="input-group mb-3">
+                <div class="custom-file">
+                <label for="exampleFormControlInput1" class="form-label">Imagen del concurso</label>
+                <input type="file" class="custom-file-input" id="banner">
+                <label class="custom-file-label" for="inputGroupFile02">Choose file</label>
+                </div>
+                <!-- <div class="input-group-append">
+                <span class="input-group-text" id="">Upload</span>
+                </div> -->
+            </div>
+            
+
+            <div class="form-group bootstrap-iso"> <!-- Date input -->
+                <label class="control-label" for="date">Fecha inicio</label>
+                <input class="form-control" id="fecha_inicio" name="fecha_inicio" placeholder="DD/MM/YYY" type="text"/>
+            </div>
+            
+            <div class="form-group bootstrap-iso2"> <!-- Date input -->
+                <label class="control-label" for="date">Fecha fin</label>
+                <input class="form-control" id="fecha_fin" name="fecha_fin" placeholder="DD/MM/YYY" type="text"/>
+            </div>
+            
+            <div class="mb-3">
+                <label for="exampleFormControlInput1" class="form-label">Valor a pagar voz seleccionada</label>
+                <input id="valor_premio" type="text" class="form-control" id="exampleFormControlInput1" placeholder="$">
+            </div>
+
+            <div class="mb-3">
+                <label for="exampleFormControlInput1" class="form-label">Guion o texto que debe expresar la voz</label>
+                <input id="guion" type="text" class="form-control" id="exampleFormControlInput1" placeholder="Escriba el guion">
+            </div>
+
+            <div class="mb-3">
+                <label for="exampleFormControlInput1" class="form-label">Recomendaciones</label>
+                <input id="recomendaciones" type="text" class="form-control" id="exampleFormControlInput1" placeholder="Escriba las recomendaciones que deben ser tenidas en cuenta por los locutores">
+            </div>
+
+            <div class="mb-3">
+                <label for="exampleFormControlInput1" class="form-label">URL</label>
+                <input id="url_texto" type="text" class="form-control" id="exampleFormControlInput1" placeholder="Texto para url">
+            </div>
+            <div style="margin-top: 20px;" class="row justify-content-center form-group">
+                <button id="crear" class="btn btn-primary col-4">Editar</button>
+                <button id="cancelar" class="btn btn-danger  col-4 offset-2">Cancelar</button>
+            </div>
+        </div>
+    </div>
+    
+    <script type="text/javascript">
+        var id_buscar = "1";
+        $(()=>{
+            $('#lbl_error').hide();
+        });
+
+        $(document).ready(async function(){
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+            id_buscar = urlParams.get('id')
+            let urlBase = 'http://3.84.211.227:8080/'
+            let URL = urlBase+'concurso/'+id_buscar
+            await fetch(URL)
+            .then(response=> {
+                if(!response.ok){
+                    throw Error(response.statusText);
+                }
+                return response.json();
+            })
+            .then(concurso=>{
+                // console.log(concurso.path_banner);
+                document.getElementById('NombredelConcurso').value = concurso.nombre;
+                document.getElementById('banner').src = concurso.path_banner;
+                document.getElementById('valor_premio').value = concurso.valor_premio;
+                document.getElementById('guion').value = concurso.guion;
+                document.getElementById('fecha_inicio').value = concurso.fecha_inicio;
+                document.getElementById('fecha_fin').value = concurso.fecha_fin;
+                document.getElementById('recomendaciones').value = concurso.recomendaciones;
+                document.getElementById('url_texto').value = concurso.url.split('=').pop().replaceAll('-',' ');
+            })
+            .catch(err => console.error(err) );
+        });
+
+
+        function getBase64(file) {
+			return new Promise((resolve, reject) => {
+				const reader = new FileReader();
+				reader.readAsDataURL(file);
+				reader.onload = () => resolve(reader.result);
+				reader.onerror = error => reject(error);
+            });
+        }
+
+        $("#cancelar").click(()=>{
+            location.href = 'Listar_concursos.html';
+        });
+        $("#crear").click( async function(){
+            var input = document.querySelector('input[type="file"]')
+            if(document.getElementById('NombredelConcurso').value === '')
+            {   
+                $('#lbl_error').show();
+                return
+            }
+            if(document.getElementById('valor_premio').value === '')
+            {   
+                $('#lbl_error').show();
+                return
+            }
+            if(document.getElementById('guion').value === '')
+            {   
+                $('#lbl_error').show();
+                return
+            }
+            if(document.getElementById('recomendaciones').value === '')
+            {   
+                $('#lbl_error').show();
+                return
+            }
+            const file = input.files[0];
+            var archivo ='';
+            
+            await getBase64(file).then(
+                data => {archivo = data;}
+				);
+            console.log(archivo);
+
+            await fetch('http://3.84.211.227:8080/concursos', {
+                method: 'POST',
+                headers: {
+                    "Content-type": "application/json"
+                },
+                body: JSON.stringify({
+                    id_admin: localStorage.getItem('user_loged'),
+                    nombre : document.getElementById('NombredelConcurso').value,
+                    path_banner : archivo,
+                    valor_premio : document.getElementById('valor_premio').value,
+                    guion : document.getElementById('guion').value,
+                    fecha_inicio : document.getElementById('fecha_inicio').value,
+                    fecha_fin : document.getElementById('fecha_fin').value,
+                    recomendaciones : document.getElementById('recomendaciones').value ,
+                    url : document.getElementById('url_texto').value.replaceAll(' ','-')
+                })
+            })
+            .then(response=> response.json())
+            .then(usuario =>{
+                alert("Evento creado satisfactoriamente");
+                location.href = 'Listar_concursos.html';
+            })
+            .catch(function(err) {
+            console.log(err);
+            });
+        });
+
+
+        $(document).ready(function(){
+            var date_input=$('input[name="fecha_inicio"]'); //our date input has the name "date"
+            var container=$('.bootstrap-iso').length>0 ? $('.bootstrap-iso').parent() : "body";
+            var options={
+                format: 'dd/mm/yyyy',
+                container: container,
+                todayHighlight: true,
+                autoclose: true,
+            };
+            date_input.datepicker(options);
+        })
+
+        $(document).ready(function(){
+            var date_input=$('input[name="fecha_fin"]'); //our date input has the name "date"
+            var container=$('.bootstrap-iso2').length>0 ? $('.bootstrap-iso2').parent() : "body";
+            var options={
+                format: 'dd/mm/yyyy',
+                container: container,
+                todayHighlight: true,
+                autoclose: true,
+            };
+            date_input.datepicker(options);
+        })
+        
+    </script>
+</body>
+</html>
