@@ -1,4 +1,5 @@
 import os
+import os.path
 import smtplib
 from sqlalchemy import create_engine
 
@@ -21,7 +22,8 @@ for r in result_set:
 
             print(cmd)
             try:
-                os.system(cmd)
+                if(os.path.exists(patho)):
+                    os.system(cmd)
             except Exception as e:
                 print(e)
             path_convertido = f'{nombre}.mp3'
