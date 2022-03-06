@@ -2,7 +2,7 @@ import os
 import smtplib
 from sqlalchemy import create_engine
 
-db_string = "postgresql://admin:123456@172.24.41.222:5432/project01"
+db_string = "postgresql://postgres:cloud1234@database-2.cnjddgnl0ynw.us-east-1.rds.amazonaws.com:5432/db_concursos"
 
 db = create_engine(db_string)
 
