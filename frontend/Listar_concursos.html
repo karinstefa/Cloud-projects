@@ -77,7 +77,7 @@
             const id_user = localStorage.getItem('user_loged');
             console.log(id_user); //get cookie
 
-            fetch('http://172.31.92.104:8080/concursos/'+id_user)
+            fetch('http://52.20.130.16:8080/concursos/'+id_user)
             .then(response=> response.json())
             .then(concurso=>{
                 console.log(concurso);
