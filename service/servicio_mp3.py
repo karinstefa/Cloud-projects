@@ -3,12 +3,22 @@ import os.path
 import smtplib
 from sqlalchemy import create_engine
 
+import json
+import requests
+
+url_sendgrid = 'https://api.sendgrid.com/v3/mail/send'
+SENDGRID_API_KEY= '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'
+# paramail = 'karinstefa@gmail.com'
+
+mensaje = 'texto'
+
+
 db_string = "postgresql://postgres:cloud1234@database-2.cnjddgnl0ynw.us-east-1.rds.amazonaws.com:5432/db_concursos"
 
 db = create_engine(db_string)
 
-gmail_user = 'p.cloud.u01@gmail.com'
-gmail_password = 'milo te da energia'
+# gmail_user = 'p.cloud.u01@gmail.com'
+# gmail_password = 'milo te da energia'
 
 
 result_set = db.execute("SELECT * FROM Voces WHERE Estado =0")  
@@ -33,24 +43,53 @@ for r in result_set:
 
         # enviar correo
         try:
-            server = smtplib.SMTP('smtp.gmail.com', 587)
-            server.starttls()
-            server.ehlo()
-            server.login(gmail_user, gmail_password)
-            print("Loged ok")
-            # message to be sent   
-            SUBJECT = "Estado concurso"   
-            TEXT = "En hora buena hemos convertido tu voz, esta ya ha sido publicada en la pagina publica del concurso. Muchos exitos!!!"
-            
-            message = 'Subject: {}\n\n{}'.format(SUBJECT, TEXT)
 
-            # to = 'p.cloud.u01@gmail.com'
-            # header = 'To:' + to + '\n' + 'From:' + gmail_user + '\n' + 'Estado concurso \n'
+            data_to_send ={
+                "personalizations": [
+                    {
+                        "to": [
+                            {
+                                "email": correo
+                            }
+                        ]
+                    }
+                ],
+                "from": {
+                    "email": "p.cloud.u01@gmail.com"
+                },
+                "subject": "Estado concurso",
+                "content": [
+                    {
+                        "type": "text/plain",
+                        "value": "En hora buena hemos convertido tu voz, esta ya ha sido publicada en la pagina publica del concurso. Muchos exitos!!!"
+                    }
+                ]
+            }
+
+            myheader = {
+                "Authorization": f'Bearer {SENDGRID_API_KEY}',
+                'Content-Type': 'application/json'}
+
+            result = requests.post(url=url_sendgrid,data =json.dumps(data_to_send),headers = myheader)
+
+            # server = smtplib.SMTP('smtp.gmail.com', 587)
+            # server.starttls()
+            # server.ehlo()
+            # server.login(gmail_user, gmail_password)
+            # print("Loged ok")
+            # # message to be sent   
+            # SUBJECT = "Estado concurso"   
+            # TEXT = 
             
-            # msg = header + '\n En hora buena hemos convertido tu voz, esta ya ha sido publicada en la pagina publica del concurso. Muchos exitos!!!'
+            # message = 'Subject: {}\n\n{}'.format(SUBJECT, TEXT)
+
+            # # to = 'p.cloud.u01@gmail.com'
+            # # header = 'To:' + to + '\n' + 'From:' + gmail_user + '\n' + 'Estado concurso \n'
             
-            server.sendmail(gmail_user, correo, message)   
-            print("send email ok")    
+            # # msg = header + '\n En hora buena hemos convertido tu voz, esta ya ha sido publicada en la pagina publica del concurso. Muchos exitos!!!'
+            
+            # server.sendmail(gmail_user, correo, message)   
+            # print("send email ok")    
             db.execute(f"UPDATE Voces SET Estado = 1, path_convertido='{path_convertido}' WHERE id = {r['id']}")
         except Exception as e:
             print('Error envio:')
