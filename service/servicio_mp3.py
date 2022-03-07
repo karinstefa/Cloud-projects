@@ -7,7 +7,6 @@ import json
 import requests
 
 url_sendgrid = 'https://api.sendgrid.com/v3/mail/send'
-SENDGRID_API_KEY= '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'
 # paramail = 'karinstefa@gmail.com'
 
 mensaje = 'texto'
