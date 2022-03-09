@@ -99,7 +99,7 @@
             const queryString = window.location.search;
             const urlParams = new URLSearchParams(queryString);
             id_buscar = urlParams.get('id')
-            let URL = 'http://52.20.130.16:8080/concurso/'+id_buscar
+            let URL = 'http://18.213.199.37:8080/concurso/'+id_buscar
             fetch(URL)
             .then(response=> {
                 if(!response.ok){
@@ -129,7 +129,7 @@
             
         $(async function (){
             let container = $('#pagination');
-            let urlBase = 'http://52.20.130.16:8080/'
+            let urlBase = 'http://18.213.199.37:8080/'
 
             await fetch(urlBase+'voces')
             .then(response =>{
