@@ -118,13 +118,13 @@
                 return response.json();
             })
             .then(concurso=>{
-                // console.log(concurso.path_banner);
+                console.log(concurso.fecha_inicio);
                 document.getElementById('NombredelConcurso').value = concurso.nombre;
                 document.getElementById('banner').src = concurso.path_banner;
                 document.getElementById('valor_premio').value = concurso.valor_premio;
                 document.getElementById('guion').value = concurso.guion;
-                document.getElementById('fecha_inicio').value = concurso.fecha_inicio;
-                document.getElementById('fecha_fin').value = concurso.fecha_fin;
+                document.getElementById('fecha_inicio').value = concurso.fecha_inicio.split('-').reverse().join('/');
+                document.getElementById('fecha_fin').value = concurso.fecha_fin.split('-').reverse().join('/');
                 document.getElementById('recomendaciones').value = concurso.recomendaciones;
                 document.getElementById('url_texto').value = concurso.url.split('=').pop().replaceAll('-',' ');
             })
@@ -174,8 +174,8 @@
 				);
             console.log(archivo);
 
-            await fetch('http://18.213.199.37:8080/concursos', {
-                method: 'POST',
+            await fetch('http://18.213.199.37:8080/concursos/'+id_buscar, {
+                method: 'PUT',
                 headers: {
                     "Content-type": "application/json"
                 },
