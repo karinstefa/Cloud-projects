@@ -157,7 +157,7 @@ class getConcursoID(Resource):
         with open(concurso.path_banner, "rb") as image_file:
             img_64 = base64.b64encode(image_file.read())
         url = concurso.url
-        concurso.url = f'http://52.20.130.16/frontend/concursos.html?id={concurso.id}&concurso={url}'
+        concurso.url = f'http://18.213.199.37/frontend/concursos.html?id={concurso.id}&concurso={url}'
 
         concurso.path_banner = f'data:image/{ext};base64,'+img_64.decode('utf-8')
         return concurso_schema.dump(concurso)
@@ -173,7 +173,16 @@ class UnConcurso(Resource):
         if 'nombre' in request.json:
             concurso.nombre = request.json['nombre']
         if 'path_banner' in request.json:
-            concurso.path_banner = request.json['path_banner']
+            [tipo, archivo] = request.json['path_banner'].split(',')
+            nom_img = request.json['nombre'].replace(" ","-")
+            try:
+                ext= tipo.split(';')[0].split('/')[-1]
+                wav_file = open(f"/files/imagen/{nom_img}.{ext}", "wb")
+                decode_string = base64.b64decode(archivo)
+                wav_file.write(decode_string)
+            except Exception as e:
+                print(e)
+            concurso.path_banner = f"/files/imagen/{nom_img}.{ext}",
         if 'fecha_inicio' in request.json:
             concurso.fecha_inicio = datetime.strptime(request.json['fecha_inicio'],"%d/%m/%Y"),
         if 'fecha_fin' in request.json:
