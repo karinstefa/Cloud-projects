@@ -8,7 +8,7 @@ import requests
 
 url_sendgrid = 'https://api.sendgrid.com/v3/mail/send'
 # paramail = 'karinstefa@gmail.com'
-
+SENDGRID_API_KEY= ''
 mensaje = 'texto'
 
 
@@ -54,7 +54,7 @@ for r in result_set:
                     }
                 ],
                 "from": {
-                    "email": "p.cloud.u01@gmail.com"
+                    "email": "cloud.uniaandes@gmail.com"
                 },
                 "subject": "Estado concurso",
                 "content": [
