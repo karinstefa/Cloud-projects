@@ -9,6 +9,10 @@ from flask_restful import Api, Resource
 from flask_cors import CORS
 from sqlalchemy import false, true
 import socket
+from botocore.config import Config
+import boto3
+from botocore import UNSIGNED
+
 #%%
 app = Flask(__name__)
 CORS(app)
@@ -22,6 +26,8 @@ port = '5432'
 user = 'postgres'
 password = 'cloud1234'
 database = 'db_concursos'
+###
+s3 = boto3.resource('s3', config=Config(signature_version=UNSIGNED))
 
 # Inicilizacion de base de datos
 
@@ -227,9 +233,10 @@ class TodosLasVoces(Resource):
         nom_voz = nueva_voz.nombres.replace(' ','_')+str(datetime.now().microsecond)
         try:
             ext = tipo.split(';')[0].split('/')[-1]
-            wav_file = open(f"/files/voz/{nom_voz}.{ext}", "wb")
-            decode_string = base64.b64decode(archivo)
-            wav_file.write(decode_string)
+            #wav_file = open(f"/files/voz/{nom_voz}.{ext}", "wb")
+            #decode_string = base64.b64decode(archivo)
+            #wav_file.write(decode_string)
+            s3.Bucket('static-cloud-project').put_object(Key=f"files/audio/{nom_voz}.{ext}", Body=archivo)
         except Exception as e:
             print(str(e))
         nueva_voz.path_original = f"/files/voz/{nom_voz}.{ext}"
