@@ -27,6 +27,9 @@ user = 'postgres'
 password = 'cloud1234'
 database = 'db_concursos'
 ###
+my_config = Config(
+    region_name = 'us-east-1'
+)
 s3 = boto3.resource('s3', config=Config(signature_version=UNSIGNED))
 
 # Inicilizacion de base de datos
