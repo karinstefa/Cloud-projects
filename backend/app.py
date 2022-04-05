@@ -236,6 +236,7 @@ class TodosLasVoces(Resource):
             #wav_file = open(f"/files/voz/{nom_voz}.{ext}", "wb")
             #decode_string = base64.b64decode(archivo)
             #wav_file.write(decode_string)
+            ##
             s3.Bucket('static-cloud-project').put_object(Key=f"files/audio/{nom_voz}.{ext}", Body=archivo)
         except Exception as e:
             print(str(e))
@@ -256,7 +257,7 @@ class UnaVoz(Resource):
                 voz_64 = base64.b64encode(voz_file.read())
             voz.path_banner = f'data:audio/{ext};base64,'+voz_64.decode('utf-8')
         return voz_schema.dump(voz)
-    
+
     def put(self,id_voz):
         voz = Voces.query.get_or_404(id_voz)
         if 'id_concurso' in request.json:
