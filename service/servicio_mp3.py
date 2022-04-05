@@ -8,8 +8,8 @@ import requests
 
 url_sendgrid = 'https://api.sendgrid.com/v3/mail/send'
 # paramail = 'karinstefa@gmail.com'
+SENDGRID_API_KEY= ''
 
-SENDGRID_API_KEY= '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'
 mensaje = 'texto'
 
 
