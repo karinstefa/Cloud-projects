@@ -28,6 +28,7 @@ for r in result_set:
     if patho != None:
         [nombre, ext] = patho.split('.')
         if ext != 'mp3':
+            print(patho)
             #cmd = f'ffmpeg -i {patho} {nombre}.mp3'
             cmd = f"https://static-cloud-project.s3.amazonaws.com/{patho} {nombre}.mp3"
             print(cmd)
