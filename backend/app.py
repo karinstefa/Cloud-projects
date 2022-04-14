@@ -9,10 +9,21 @@ from flask_restful import Api, Resource
 from flask_cors import CORS
 from sqlalchemy import false, true
 import socket
+import os
+from dotenv import load_dotenv
+import requests
+import json
+
 #%%
 app = Flask(__name__)
 CORS(app)
 
+
+#%% Variables de entorno
+load_dotenv()
+
+#variables
+URL_API_SEND_FILE = os.getenv('URL_API_SEND_FILE')
 #%%
 ip_add = socket.gethostbyname(socket.gethostname())
 
@@ -346,6 +357,22 @@ def obtenerVozConvertido(id_voz):
         'archivo' : voz_enviar
         })
 
+@app.route('/test_api_send_file', methods=['POST'])
+def send_file():
+    if request.method == 'POST':
+        data = request.get_json()
+        url = URL_API_SEND_FILE
+        headers = {'Content-Type': 'application/json'}
+        response = requests.post(url, 
+        data= json.dumps(data), 
+        headers=headers)
+        print(response.json())
+        if response.status_code == 200:
+            return response.json()
+        
+    else:
+        print('POST Error 405 Method Not Allowed')
+        return ({'Sucess': 'False'})
 
 if __name__ == '__main__':
     app.run(debug=True,host="0.0.0.0", port=8080)
