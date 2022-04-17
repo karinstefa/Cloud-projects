@@ -1,16 +1,19 @@
 # %% imports
 import base64
+import json
 import boto3
 import os
 from dotenv import load_dotenv
 from boto3.dynamodb.conditions import Key
+import requests
 
 load_dotenv()
 # %% Variables de entorno
 bucket_name = os.getenv('BUCKET_NAME')
 queueName = os.getenv('QUEUE_NAME')
 region_name = os.getenv('REGION_NAME')
-
+sendgrid_api_key = os.getenv('SENDGRID_API_KEY')
+sendgrid_url = os.getenv('SENDGRID_URL')
 # %% Create SQS and S3 client
 sqs = boto3.client('sqs',region_name='us-east-1')
 s3 = boto3.client('s3')
@@ -52,7 +55,6 @@ if 'Messages' in response:
             id_proc = id_voz.replace('|','_')
             
             s31.Bucket(bucket_name).download_file(file_path,f'tmp/vz_{id_proc}.{ext}')
-
             # % 5 convertir a mp3 local
             cmd = f" ffmpeg -i tmp/vz_{id_proc}.{ext} -af aresample=async=1:first_pts=0 tmp/vz_{id_proc}.mp3"
             os.system(cmd)
@@ -61,33 +63,61 @@ if 'Messages' in response:
             with open(f"tmp/vz_{id_proc}.mp3", "rb") as voz_file:
                 voz_64 = base64.b64encode(voz_file.read())            
             msg = base64.b64decode(voz_64)
-
             s3.put_object(Key=f"files/voz/{name}.mp3", Bucket=bucket_name, Body=msg)
-
-            '''
-            # %% 7 actualizar estado en bd
-            table.update_item(
-                Key={'pk': 'voz#voz', 'sk': id_voz},
-                AttributeUpdates={
-                    'info': {
-                        "Action": "PUT",
-                        'Value': {'estado': '1'}
-                    }
-                }
-            )
-            '''
             # eliminar archivos temporales
             os.remove(f"tmp/vz_{id_proc}.{ext}")
             os.remove(f"tmp/vz_{id_proc}.mp3")
-
             # %% 8 enviar correo
-
+            try:
+                data_to_send ={
+                    "personalizations": [
+                        {
+                            "to": [
+                                {
+                                    "email": correo
+                                }
+                            ]
+                        }
+                    ],
+                    "from": {
+                        "email": "cursocloud2022@gmail.com"
+                    },
+                    "subject": "Estado concurso",
+                    "content": [
+                        {
+                            "type": "text/plain",
+                            "value": "En hora buena hemos convertido tu voz, esta ya ha sido publicada en la pagina publica del concurso. Muchos exitos!!!"
+                        }
+                    ]
+                }
+                myheader = {
+                    "Authorization": f'Bearer {sendgrid_api_key}',
+                    'Content-Type': 'application/json'}
+                result = requests.post(
+                    url = sendgrid_url,
+                    data =json.dumps(data_to_send),
+                    headers = myheader)
+                print(result)
+                
+                # %% 7 actualizar estado en bd
+                table.update_item(
+                    Key={'pk': 'voz#voz', 'sk': id_voz},
+                    AttributeUpdates={
+                        'info': {
+                            "Action": "PUT",
+                            'Value': {'estado': '1'}
+                        }
+                    }
+                )
+                
+            except Exception as e:
+                print('Error envio:')
+                print(e)
         else:
             print('Ya esta procesado')
     except Exception as e:
         print(e)
     # %% 9 borrar mensaje de SQS
-
     sqs.delete_message(
         QueueUrl=queue_url,
         ReceiptHandle=receipt_handle
