@@ -70,7 +70,10 @@ for r in result_set:
                 "Authorization": f'Bearer {SENDGRID_API_KEY}',
                 'Content-Type': 'application/json'}
 
-            result = requests.post(url=url_sendgrid,data =json.dumps(data_to_send),headers = myheader)
+            result = requests.post(
+                url = url_sendgrid,
+                data =json.dumps(data_to_send),
+                headers = myheader)
 
             # server = smtplib.SMTP('smtp.gmail.com', 587)
             # server.starttls()
