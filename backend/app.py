@@ -49,9 +49,9 @@ ma = Marshmallow(app)
 
 dynamodb = boto3.resource('dynamodb',
                           region_name="us-east-1",
-                          aws_access_key_id='ASIA2VZ5BK42REYVZJMC',
-                          aws_secret_access_key='Bv8DYMBH/gsMplBsL/RaHwmosYu+pEoJPTaQNmWc',
-                          aws_session_token='FwoGZXIvYXdzEAQaDID6aRt9V6mGBM2vbiLKAf7YMdGcpxZbwTi8jJpZBsP2c3GFg1MLdn+HgkkDhLEXLrSFvSYNf7jwRC2kn/zpXP5FpsErSYrybd+sgDi+nF4psxpuQj39HZYAC8lImOunL7Hl1v9JQF4a1X2yusznqr2RKogf5ihl6hsxgtxOGHDID3qhbWSpF4S0D8FqWemve/B97WN+NN6A64eQL5EIFvI8VCYPT+KzYVMr22hFIALUVaxRuWv2JvRq/IG/vHn8bleKWEuASwTmaMuJ7tTWN2sFARbPaxNcd54otuLokgYyLZC7/47wK58+DqQ4ygjC5bWR5zSW4D1/uy2P+V3a9Zl5z0AMlt7n1baWSeCsJQ==')
+                          aws_access_key_id='ASIA2VZ5BK42SG5NXEU3',
+                          aws_secret_access_key='Xa5if3JsizRquBJQ595X6fpGSFqZ/eG8KhNCwCjc',
+                          aws_session_token='FwoGZXIvYXdzECkaDI0W6aR2WlLjPZIveyLKATspnfKPUAJYoIFv/3zOvN2N2T9kvRAQIuXkwgA1p3cC7ZldJLD0JC+N8SntZvFaz6SkA0gmfDJq/YpM0l+f2zp1eO1FJ1F1jCSCER31VVN1KFtoQ3ZzkshXV9eS3tZxUDtRdQEoZMwPc2cR1qjtk0vFkFmdZ+hIPxS6/qIVD3LTphbO2gMmZC+GF11YrA37a+1OGDnmK3sK0VDAvx8rkwGXd15b+ATq//+i3cVxxXk/ExvpiQIEfyAMJV8r+T9zge7psY6O51wUqxso8+TwkgYyLaUOSudHZYL07/5luOjU2E4QfDovXnHN0fOq2JTxv2X7/1yC3KomPQKjw3F8Tw==')
 
 
 my_config = Config(
@@ -156,6 +156,7 @@ class TodosLosConcursos(Resource):
         KeyConditionExpression=Key('pk').eq('concurso#concurso')
         )
         print(response['Items'])
+        print(response['Items']['info'])
 
         #concursos = Concursos.query.all()        
         #return concursos_schema.dump(concursos)
@@ -175,7 +176,7 @@ class TodosLosConcursos(Resource):
         id = uuid.uuid1()
         id_admin = request.json['id_admin']
         row = {'pk': 'concurso#concurso',
-             'sk': f'{id_admin}#{id}',
+             'sk': f'{id_admin}|{id}',
              'info': {'id': f'{id_admin}#{id}',
                       'id_admin':id_admin,
                       'nombre': request.json['nombre'],
@@ -210,7 +211,7 @@ class UnConcurso(Resource):
         print(id_concurso)
         table = dynamodb.Table('concurso')
         response = table.query(
-        KeyConditionExpression=Key('pk').eq('concurso#concurso') & Key('sk').eq(id_concurso)
+        KeyConditionExpression=Key('pk').eq('concurso#concurso') & Key('sk').begins_with(id_concurso)
     )
         print(response['Items'])
         
@@ -220,7 +221,7 @@ class UnConcurso(Resource):
     def put(self,id_concurso):
         table = dynamodb.Table('concurso')
         table.update_item(
-            Key={'pk':'concurso#concurso', 'sk': '1#2'}, 
+            Key={'pk':'concurso#concurso', 'sk': id_concurso}, 
             AttributeUpdates={
                 'info': {
                     "Action": "PUT", 
