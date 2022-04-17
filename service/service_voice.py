@@ -6,6 +6,7 @@ import boto3
 sqs = boto3.client('sqs',region_name='us-east-1')
 s3 = boto3.client('s3')
 
+
 bucket_name = 'test-bucket-cloud-1'
 queueName = 'test.fifo'
 folder = 'test'
