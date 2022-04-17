@@ -58,6 +58,8 @@ my_config = Config(
 )
 # s3 = boto3.resource('s3', config=Config(signature_version=UNSIGNED))
 s3 = boto3.client('s3')
+s31 = boto3.resource('s3')
+
 bucket_name = 'test-bucket-cloud-1'
 
 
@@ -188,9 +190,6 @@ class TodosLosConcursos(Resource):
             print('try')
             msg = base64.b64decode(archivo)
             s3.put_object(Key=f"files/imagen/{nom_img}.{ext}", Bucket=bucket_name, Body=msg)
-            #wav_file = open(f"/files/imagen/{nom_img}.{ext}", "wb")
-            #decode_string = base64.b64decode(archivo)
-            # wav_file.write(decode_string)
         except Exception as e:
             print(str(e))
         id = uuid.uuid1()
@@ -200,7 +199,7 @@ class TodosLosConcursos(Resource):
                'info': {'id': f'{id_admin}|{id}',
                         'id_admin': id_admin,
                         'nombre': request.json['nombre'],
-                        'path_banner': f"/files/imagen/{nom_img}.jpg",
+                        'path_banner': f"files/imagen/{nom_img}.{ext}",
                         'fecha_inicio': request.json['fecha_inicio'],
                         'fecha_fin': request.json['fecha_fin'],
                         'valor_premio': str(request.json['valor_premio']),
@@ -243,9 +242,11 @@ class getConcursoID(Resource):
                 'concurso#concurso') & Key('sk').eq(id_concurso)
         )
         concurso = response['Items'][0]
-        [name, ext] = concurso['info']['path_banner'].split('.')
+        ext = concurso['info']['path_banner'].split('.')[-1]
+        #Download object to the file    
+        s31.Bucket(bucket_name).download_file(concurso['info']['path_banner'],f'tmp/Im_{id_concurso}.{ext}')
         img_64 = ''
-        with open(concurso['info']['path_banner'], "rb") as image_file:
+        with open(f'tmp/Im_{id_concurso}.{ext}', "rb") as image_file:
             img_64 = base64.b64encode(image_file.read())
         concurso['info'].update(
             {
@@ -254,11 +255,9 @@ class getConcursoID(Resource):
             )
         concurso['info'].update({'path_banner': f'data:image/{ext};base64,'+img_64.decode('utf-8')})
 
-        print("------------------------------------------------------")
-        print(response)
-        print("------------------------------------------------------")
-        print(concurso['info'])
-        print("------------------------------------------------------")
+        os.remove(f'tmp/Im_{id_concurso}.{ext}')
+
+
         return concurso_schema.dump(concurso['info'])
         # return concurso_schema.dump(concurso)
 
