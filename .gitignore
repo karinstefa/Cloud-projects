@@ -130,3 +130,13 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# temp files
+
+service/tmp
+backend/tmp
+
+backend/.env
+APIs/.env
+service/.env
+.DS_Store

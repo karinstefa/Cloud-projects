@@ -1,16 +1,23 @@
 # %% imports
-from fileinput import filename
+import base64
 import boto3
+import os
+from dotenv import load_dotenv
+from boto3.dynamodb.conditions import Key
 
-# %% Variables
+load_dotenv()
+# %% Variables de entorno
+bucket_name = os.getenv('BUCKET_NAME')
+queueName = os.getenv('QUEUE_NAME')
+region_name = os.getenv('REGION_NAME')
+
+# %% Create SQS and S3 client
 sqs = boto3.client('sqs',region_name='us-east-1')
 s3 = boto3.client('s3')
+s31 = boto3.resource('s3')
+dynamodb = boto3.resource('dynamodb', region_name = region_name)
 
 
-bucket_name = 'test-bucket-cloud-1'
-queueName = 'test.fifo'
-folder = 'test'
-filename = ''
 # %% 1 Leer SQS
 queue_url = f'https://sqs.us-east-1.amazonaws.com/734030550837/{queueName}'
 
@@ -21,29 +28,67 @@ response = sqs.receive_message(
         'All'
     ]
 )
-message = response['Messages'][0]
-receipt_handle = message['ReceiptHandle']
-# %% 2 dynamodb check estado
-# % 3 dynamodb update estado enProceso
 
-# %% 4 bajar archivo de S3
-# % 5 convertir a mp3 local
-cmd = f" ffmpeg -i {url_up} -af aresample=async=1:first_pts=0 {filename}.mp3"
+if 'Messages' in response:
+    message = response['Messages'][0]
+    receipt_handle = message['ReceiptHandle']
 
-# %% 6 subir archivo a S3
-file_name_with_extention = f'{folder}/{filename}.mp3'
+    attributes = message['MessageAttributes']
+    try :
+        file_name = attributes['FileName']['StringValue']
+        file_path = attributes['FilePath']['StringValue']
+        id_voz = attributes['Id_voz']['StringValue']
+        correo = attributes['correo']['StringValue']
+        # %% 2 dynamodb check estado
+        # % 3 dynamodb update estado enProceso
+        table = dynamodb.Table('voz')
+        responseDB = table.query(
+            KeyConditionExpression=Key('pk').eq('voz#voz') & Key('sk').eq(id_voz)
+        )
+        if responseDB['Items'][0]['info']['estado'] == '0':
+            print('En proceso')
+            # %% 4 bajar archivo de S3
+            [name,ext] = file_name.split('.')
+            id_proc = id_voz.replace('|','_')
+            
+            s31.Bucket(bucket_name).download_file(file_path,f'tmp/vz_{id_proc}.{ext}')
 
-s3.put_object(  Body=msg, 
-                Bucket=bucket_name,
-                Key=file_name_with_extention)
+            # % 5 convertir a mp3 local
+            cmd = f" ffmpeg -i tmp/vz_{id_proc}.{ext} -af aresample=async=1:first_pts=0 tmp/vz_{id_proc}.mp3"
+            os.system(cmd)
+            # %% 6 subir archivo a S3
+            voz_64=''
+            with open(f"tmp/vz_{id_proc}.mp3", "rb") as voz_file:
+                voz_64 = base64.b64encode(voz_file.read())            
+            msg = base64.b64decode(voz_64)
 
-# %% 7 actualizar estado en bd
-url_down = f'https://{bucket_name}.s3.amazonaws.com/{folder}/{filename}.mp3'
+            s3.put_object(Key=f"files/voz/{name}.mp3", Bucket=bucket_name, Body=msg)
 
-# %% 8 enviar correo
+            '''
+            # %% 7 actualizar estado en bd
+            table.update_item(
+                Key={'pk': 'voz#voz', 'sk': id_voz},
+                AttributeUpdates={
+                    'info': {
+                        "Action": "PUT",
+                        'Value': {'estado': '1'}
+                    }
+                }
+            )
+            '''
+            # eliminar archivos temporales
+            os.remove(f"tmp/vz_{id_proc}.{ext}")
+            os.remove(f"tmp/vz_{id_proc}.mp3")
 
-# %% 9 borrar mensaje de SQS
-sqs.delete_message(
-    QueueUrl=queue_url,
-    ReceiptHandle=receipt_handle
-)
+            # %% 8 enviar correo
+
+        else:
+            print('Ya esta procesado')
+    except Exception as e:
+        print(e)
+    # %% 9 borrar mensaje de SQS
+
+    sqs.delete_message(
+        QueueUrl=queue_url,
+        ReceiptHandle=receipt_handle
+    )

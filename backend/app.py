@@ -13,7 +13,7 @@ from flask_cors import CORS
 from sqlalchemy import false, true
 import socket
 import os
-#from dotenv import load_dotenv
+from dotenv import load_dotenv
 import requests
 import json
 from botocore.config import Config
@@ -28,44 +28,39 @@ app = Flask(__name__)
 CORS(app)
 
 # %% Variables de entorno
-# load_dotenv()
+load_dotenv()
 
 # variables
 URL_API_SEND_FILE = os.getenv('URL_API_SEND_FILE')
 # %%
 ip_add = socket.gethostbyname(socket.gethostname())
 
-# %%
-host = 'database-2.cnjddgnl0ynw.us-east-1.rds.amazonaws.com'
-port = '5432'
-user = 'postgres'
-password = 'cloud1234'
-database = 'db_concursos'
+# %% Variables de entorno
+host = os.getenv('RDS_HOST')
+port = os.getenv('RDS_PORT')
+user = os.getenv('RDS_USER')
+password = os.getenv('RDS_PASSWORD')
+database = os.getenv('RDS_DB')
+region_name = os.getenv('REGION_NAME')
+bucket_name = os.getenv('BUCKET_NAME')
+front_url = os.getenv('FRONT_URL')
 
 # Inicilizacion de base de datos
-
 app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:cloud1234@database-2.cnjddgnl0ynw.us-east-1.rds.amazonaws.com:5432/db_concursos"
+
 # base de datos
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
-dynamodb = boto3.resource('dynamodb',
-                          region_name="us-east-1")
+dynamodb = boto3.resource('dynamodb', region_name = region_name)
 
+my_config = Config(region_name=region_name)
 
-my_config = Config(
-    region_name='us-east-1'
-)
-# s3 = boto3.resource('s3', config=Config(signature_version=UNSIGNED))
+# %% Definicion de conexion a s3
 s3 = boto3.client('s3')
 s31 = boto3.resource('s3')
 
-bucket_name = 'test-bucket-cloud-1'
-
-
 # Crear Clases y esquemas Administrador
-
-
 class Administradores(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombres = db.Column(db.String(50))
@@ -250,14 +245,11 @@ class getConcursoID(Resource):
             img_64 = base64.b64encode(image_file.read())
         concurso['info'].update(
             {
-                'url': f"http://52.20.130.16/frontend/concursos.html?id={concurso['info']['id']}&concurso={concurso['info']['url']}"
+                'url': f"{front_url}/frontend/concursos.html?id={concurso['info']['id']}&concurso={concurso['info']['url']}"
                 }
             )
         concurso['info'].update({'path_banner': f'data:image/{ext};base64,'+img_64.decode('utf-8')})
-
         os.remove(f'tmp/Im_{id_concurso}.{ext}')
-
-
         return concurso_schema.dump(concurso['info'])
         # return concurso_schema.dump(concurso)
 
@@ -327,52 +319,45 @@ class TodosLasVoces(Resource):
                         'observaciones': request.json['observaciones'],
                         'fecha_creacion': str(datetime.now()),
                         'estado': '0',
-                        'path_original': f'/files/voz/{nom_voz}.{ext}'
+                        'path_original': f'files/voz/{nom_voz}.{ext}',
+                        'path_convertido': ''
                         }
                }
+        if  ext == "mp3":
+            row['info'].update({'path_convertido': f'files/voz/{nom_voz}.{ext}'})
+            row['info'].update({'estado': '1'})
+        
+        dynamodb.Table('voz').put_item(Item=row)
         try:
             print('try')
+            msg = base64.b64decode(archivo)
+            s3.put_object(Key=f"files/voz/{nom_voz}.{ext}", Bucket=bucket_name, Body=msg)
             # ext = tipo.split(';')[0].split('/')[-1]
             # wav_file = open(f"/files/voz/{nom_voz}.{ext}", "wb")
             # decode_string = base64.b64decode(archivo)
             # wav_file.write(decode_string)
         except Exception as e:
             print(str(e))
-        dynamodb.Table('voz').put_item(Item=row)
-        url = URL_API_SEND_FILE
-        headers = {'Content-Type': 'application/json'}
-        response = requests.post(
-            url,
-            data=json.dumps(
-                {
-                    'file_voice': f"{nom_voz}.{ext}",
-                    'file_bs64': archivo,
-                    'id_voz': f'{id_concurso}|{id}',
-                    'correo': request.json['correo']
-                }),
-            headers=headers)
-        print(response.json())
-        if response.status_code == 200:
-            url_up = response.json()['url_up']
-            print(url_up)
-            request.json['path_original'] = url_up
-            func = false
-            for i in range(0, 3):
-                try:
-                    db.session.commit()
-                    func = true
-                    break
-                except Exception as e:
-                    print(str(e))
-                    func = false
-            if func:
+        if row['info']['estado'] == '0':
+            url = URL_API_SEND_FILE
+            headers = {'Content-Type': 'application/json'}
+            response = requests.post(
+                url,
+                data=json.dumps(
+                    {
+                        'file_name': f"{nom_voz}.{ext}",
+                        'file_path': f"files/voz/{nom_voz}.{ext}",
+                        'id_voz': row['info']['id'],
+                        'correo': request.json['correo']
+                    }),
+                headers = headers)
+            if response.status_code == 200:
                 return {
-                    'message': 'Se creo la voz correctamente',
+                    'message': 'Voz creada exitosamente',
                     'id_voz': f'{id_concurso}|{id}'
                 }
             else:
                 return {'message': 'No se pudo crear la voz'}
-
         return {
             'message': 'Voz creada exitosamente.',
             'id_voz': f'{id_concurso}|{id}'
