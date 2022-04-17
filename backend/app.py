@@ -1,5 +1,7 @@
 #%%
+from ast import Expression
 from datetime import datetime
+from inspect import Attribute
 from flask import Flask
 from flask import request
 from flask import jsonify
@@ -10,17 +12,21 @@ from flask_cors import CORS
 from sqlalchemy import false, true
 import socket
 import os
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 import requests
 import json
+from botocore.config import Config
+import boto3
+from botocore import UNSIGNED
+import uuid
+from boto3.dynamodb.conditions import Key
 
 #%%
 app = Flask(__name__)
 CORS(app)
 
-
 #%% Variables de entorno
-load_dotenv()
+#load_dotenv()
 
 #variables
 URL_API_SEND_FILE = os.getenv('URL_API_SEND_FILE')
@@ -41,6 +47,17 @@ app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:cloud1234@databas
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
+dynamodb = boto3.resource('dynamodb',
+                          region_name="us-east-1",
+                          aws_access_key_id='ASIA2VZ5BK42SG5NXEU3',
+                          aws_secret_access_key='Xa5if3JsizRquBJQ595X6fpGSFqZ/eG8KhNCwCjc',
+                          aws_session_token='FwoGZXIvYXdzECkaDI0W6aR2WlLjPZIveyLKATspnfKPUAJYoIFv/3zOvN2N2T9kvRAQIuXkwgA1p3cC7ZldJLD0JC+N8SntZvFaz6SkA0gmfDJq/YpM0l+f2zp1eO1FJ1F1jCSCER31VVN1KFtoQ3ZzkshXV9eS3tZxUDtRdQEoZMwPc2cR1qjtk0vFkFmdZ+hIPxS6/qIVD3LTphbO2gMmZC+GF11YrA37a+1OGDnmK3sK0VDAvx8rkwGXd15b+ATq//+i3cVxxXk/ExvpiQIEfyAMJV8r+T9zge7psY6O51wUqxso8+TwkgYyLaUOSudHZYL07/5luOjU2E4QfDovXnHN0fOq2JTxv2X7/1yC3KomPQKjw3F8Tw==')
+
+
+my_config = Config(
+    region_name = 'us-east-1'
+)
+s3 = boto3.resource('s3', config=Config(signature_version=UNSIGNED))
 
 # Crear Clases y esquemas Administrador
 class Administradores(db.Model):
@@ -133,17 +150,48 @@ class ValidarAdministrador(Resource):
 
 class TodosLosConcursos(Resource):
     def get(self):
-        concursos = Concursos.query.all()        
-        return concursos_schema.dump(concursos)
+
+        table = dynamodb.Table('concurso')
+        response = table.query(
+        KeyConditionExpression=Key('pk').eq('concurso#concurso')
+        )
+        print(response['Items'])
+        print(response['Items']['info'])
+
+        #concursos = Concursos.query.all()        
+        #return concursos_schema.dump(concursos)
+        return 'GEt OK'
     def post(self):
-        [tipo, archivo] = request.json['path_banner'].split(',')
+        #[tipo, archivo] = request.json['path_banner'].split(',')
         nom_img = request.json['nombre'].replace(" ","-")
         try:
-            ext= tipo.split(';')[0].split('/')[-1]
-            wav_file = open(f"/files/imagen/{nom_img}.{ext}", "wb")
-            decode_string = base64.b64decode(archivo)
-            wav_file.write(decode_string)
+            print('try')
+            #s3.Bucket('static-cloud-project').put_object(Key=f"files/imagen/{nom_img}.{tipo}", Body=archivo)
+            #ext= tipo.split(';')[0].split('/')[-1]
+            #wav_file = open(f"/files/imagen/{nom_img}.{ext}", "wb")
+            #decode_string = base64.b64decode(archivo)
+            #wav_file.write(decode_string)
         except Exception as e:
+            print(str(e))       
+        id = uuid.uuid1()
+        id_admin = request.json['id_admin']
+        row = {'pk': 'concurso#concurso',
+             'sk': f'{id_admin}|{id}',
+             'info': {'id': f'{id_admin}#{id}',
+                      'id_admin':id_admin,
+                      'nombre': request.json['nombre'],
+                      'pathbanner':f"/files/imagen/{nom_img}.jpg",
+                      'fecha_inicio': request.json['fecha_inicio'],
+                      'fecha_fin': request.json['fecha_fin'],
+                      'valor_premio': request.json['valor_premio'],
+                      'guion': request.json['guion'],
+                      'recomendacion': request.json['recomendaciones'],
+                      'url': request.json['url']}
+         }
+        dynamodb.Table('concurso').put_item(Item=row)
+        print(row)
+        return {'message':'Concurso creado exitosamente.'}
+"""
             print(str(e))
         nuevo_concurso = Concursos(
                 id_admin = request.json['id_admin'],
@@ -162,6 +210,7 @@ class TodosLosConcursos(Resource):
             'message':'Concurso creado exitosamente.',
             'id':nuevo_concurso.id
             }
+"""
 
 class getConcursoID(Resource):
     def get(self,id_concurso):
@@ -178,43 +227,84 @@ class getConcursoID(Resource):
 
 class UnConcurso(Resource):
     def get(self,id_concurso):
-        concurso = Concursos.query.filter_by(id_admin = id_concurso).all()
-        return concursos_schema.dump(concurso)
+
+        print(id_concurso)
+        table = dynamodb.Table('concurso')
+        response = table.query(
+        KeyConditionExpression=Key('pk').eq('concurso#concurso') & Key('sk').begins_with(id_concurso)
+    )
+        print(response['Items'])
+        
+        #concurso = Concursos.query.filter_by(id_admin = id_concurso).all()
+        #return concursos_schema.dump(concurso)
+        return 'get OK'
     def put(self,id_concurso):
-        concurso = Concursos.query.get_or_404(id_concurso)
-        if 'id_admin' in request.json:
-            concurso.id_admin = request.json['id_admin']
-        if 'nombre' in request.json:
-            concurso.nombre = request.json['nombre']
-        if 'path_banner' in request.json:
-            [tipo, archivo] = request.json['path_banner'].split(',')
-            nom_img = request.json['nombre'].replace(" ","-")
-            try:
-                ext= tipo.split(';')[0].split('/')[-1]
-                wav_file = open(f"/files/imagen/{nom_img}.{ext}", "wb")
-                decode_string = base64.b64decode(archivo)
-                wav_file.write(decode_string)
-            except Exception as e:
-                print(e)
-            concurso.path_banner = f"/files/imagen/{nom_img}.{ext}",
-        if 'fecha_inicio' in request.json:
-            concurso.fecha_inicio = datetime.strptime(request.json['fecha_inicio'],"%d/%m/%Y"),
-        if 'fecha_fin' in request.json:
-            concurso.fecha_fin = datetime.strptime(request.json['fecha_fin'],"%d/%m/%Y"),
-        if 'valor_premio' in request.json:
-            concurso.valor_premio = request.json['valor_premio']
-        if 'guion' in request.json:
-            concurso.guion = request.json['guion']
-        if 'recomendaciones' in request.json:
-            concurso.recomendaciones = request.json['recomendaciones']
-        if 'url' in request.json:
-            concurso.url = request.json['url']
-        db.session.commit()
+        table = dynamodb.Table('concurso')
+        table.update_item(
+            Key={'pk':'concurso#concurso', 'sk': id_concurso}, 
+            AttributeUpdates={
+                'info': {
+                    "Action": "PUT", 
+                    'Value':{
+                        'recomendacion': 'EDITAEXITOSAMENTE',
+                        "fecha_inicio": "2022-02-09",
+                        "pathbanner": "BLA",
+                        "fecha_fin": "2022-02-14",
+                        "id_admin": 1,
+                        "valor_premio": "800",
+                        "guion": "A rock band plays their music at high volumes, annoying the neighbors.",
+                        "id": 3, 
+                        "nombre": "andres",
+                        "url": "bla"}
+                        }
+            }
+                )
+        print(id_concurso)
+        
+        # concurso = Concursos.query.get_or_404(id_concurso)
+        # if 'id_admin' in request.json:
+        #     concurso.id_admin = request.json['id_admin']
+        # if 'nombre' in request.json:
+        #     concurso.nombre = request.json['nombre']
+        # if 'path_banner' in request.json:
+        #     [tipo, archivo] = request.json['path_banner'].split(',')
+        #     nom_img = request.json['nombre'].replace(" ","-")
+        #     try:
+        #         ext= tipo.split(';')[0].split('/')[-1]
+        #         wav_file = open(f"/files/imagen/{nom_img}.{ext}", "wb")
+        #         decode_string = base64.b64decode(archivo)
+        #         wav_file.write(decode_string)
+        #     except Exception as e:
+        #         print(e)
+        #     concurso.path_banner = f"/files/imagen/{nom_img}.{ext}",
+        # if 'fecha_inicio' in request.json:
+        #     concurso.fecha_inicio = datetime.strptime(request.json['fecha_inicio'],"%d/%m/%Y"),
+        # if 'fecha_fin' in request.json:
+        #     concurso.fecha_fin = datetime.strptime(request.json['fecha_fin'],"%d/%m/%Y"),
+        # if 'valor_premio' in request.json:
+        #     concurso.valor_premio = request.json['valor_premio']
+        # if 'guion' in request.json:
+        #     concurso.guion = request.json['guion']
+        # if 'recomendaciones' in request.json:
+        #     concurso.recomendaciones = request.json['recomendaciones']
+        # if 'url' in request.json:
+        #     concurso.url = request.json['url']
+        # db.session.commit()
         return {'message':'El concurso se edito correctamente'}
+
     def delete(self, id_concurso):
-        concurso = Concursos.query.get_or_404(id_concurso)
-        db.session.delete(concurso)
-        db.session.commit()
+
+        table = dynamodb.Table('concurso')
+
+        table.delete_item(Key={'pk':'concurso#concurso', 'sk': id_concurso})
+        print(id_concurso,'ELIMINADO')   
+
+        
+        print(id_concurso,'Update')  
+        
+        #concurso = Concursos.query.get_or_404(id_concurso)
+        #db.session.delete(concurso)
+        #db.session.commit()
         return 'Se borro exitosamente el concurso', 204
 
 import base64
@@ -337,7 +427,7 @@ api.add_resource(ValidarAdministrador, '/validar_administrador')
 
 # Endpoints Concursos---
 api.add_resource(TodosLosConcursos, '/concursos')
-api.add_resource(UnConcurso,'/concursos/<int:id_concurso>')
+api.add_resource(UnConcurso,'/concursos/<string:id_concurso>')
 api.add_resource(getConcursoID,'/concurso/<int:id_concurso>')
 
 # Endpoint Voces
