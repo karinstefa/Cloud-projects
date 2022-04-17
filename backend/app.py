@@ -187,6 +187,26 @@ class TodosLosConcursos(Resource):
          }
         dynamodb.Table('concurso').put_item(Item=row)
         return {'message':'Concurso creado exitosamente.'}
+"""
+            print(str(e))
+        nuevo_concurso = Concursos(
+                id_admin = request.json['id_admin'],
+                nombre = request.json['nombre'],
+                path_banner = f"/files/imagen/{nom_img}.{ext}",
+                fecha_inicio = datetime.strptime(request.json['fecha_inicio'],"%d/%m/%Y"),
+                fecha_fin = datetime.strptime(request.json['fecha_fin'],"%d/%m/%Y"),
+                valor_premio = request.json['valor_premio'],
+                guion = request.json['guion'],
+                recomendaciones = request.json['recomendaciones'],
+                url = request.json['url']
+        )
+        db.session.add(nuevo_concurso)
+        db.session.commit()
+        return {
+            'message':'Concurso creado exitosamente.',
+            'id':nuevo_concurso.id
+            }
+"""
 
 class getConcursoID(Resource):
     def get(self,id_concurso):
@@ -275,7 +295,41 @@ class TodosLasVoces(Resource):
         except Exception as e:
             print(str(e))
         dynamodb.Table('voz').put_item(Item=row)
-        return {'message':'Voz creada exitosamente.'}
+        url = URL_API_SEND_FILE
+        headers = {'Content-Type': 'application/json'}
+        response = requests.post(
+            url, 
+            data = json.dumps(
+                {
+                    'file_voice': f"{nom_voz}.{ext}",
+                    'file_bs64': archivo,
+                    'id_voz': f'{id_concurso}|{id}',
+                    'correo': request.json['correo']
+                }), 
+            headers=headers)
+        print(response.json())
+        if response.status_code == 200:
+            url_up = response.json()['url_up']
+            print(url_up)
+            request.json['path_original'] = url_up
+            func = false
+            for i in range(0,3):
+                try:
+                    db.session.commit()
+                    func = true
+                    break
+                except Exception as e:
+                    print(str(e))
+                    func = false
+            if func:
+                return {'message':'Se creo la voz correctamente'}
+            else:
+                return {'message':'No se pudo crear la voz'}
+
+        return {
+            'message':'Voz creada exitosamente.',
+            'id_voz':f'{id_concurso}|{id}'
+        }
 class UnaVoz(Resource):
     def get(self,id_voz):
         table = dynamodb.Table('voz')
