@@ -1,3 +1,4 @@
 #!/bin/bash
 sudo apt install apache2
-cp /home/ubuntu/Cloud-projects/frontend/ /var/www/html
+cd /home/ubuntu/Cloud-projects/frontend/
+sudo cp * /var/www/html
