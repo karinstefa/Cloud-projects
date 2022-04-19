@@ -19,6 +19,7 @@ import redis
 
 # %%
 app = Flask(__name__)
+app.secret_key = "123456abcd"
 CORS(app)
 
 # %% Variables de entorno
