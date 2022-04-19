@@ -1,27 +1,21 @@
 # %%
-from ast import Expression, If
 from datetime import datetime
-from inspect import Attribute
-from queue import Empty
-from flask import Flask
-from flask import request
-from flask import jsonify
+from flask import Flask, session, request, jsonify, escape
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from flask_restful import Api, Resource
 from flask_cors import CORS
-from sqlalchemy import false, true
 import socket
 import os
 from dotenv import load_dotenv
 import requests
 import json
 from botocore.config import Config
-import boto3
 import base64
-from botocore import UNSIGNED
 import uuid
+import boto3
 from boto3.dynamodb.conditions import Key
+import redis
 
 # %%
 app = Flask(__name__)
@@ -44,7 +38,7 @@ database = os.getenv('RDS_DB')
 region_name = os.getenv('REGION_NAME')
 bucket_name = os.getenv('BUCKET_NAME')
 front_url = os.getenv('FRONT_URL')
-
+redis_url = os.getenv('REDIS_URL')
 # Inicilizacion de base de datos
 app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:cloud1234@database-2.cnjddgnl0ynw.us-east-1.rds.amazonaws.com:5432/db_concursos"
 
@@ -59,7 +53,8 @@ my_config = Config(region_name=region_name)
 # %% Definicion de conexion a s3
 s3 = boto3.client('s3')
 s31 = boto3.resource('s3')
-
+# %% redis elasticache
+store = redis.Redis.from_url(redis_url)
 # Crear Clases y esquemas Administrador
 class Administradores(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -161,6 +156,9 @@ class ValidarAdministrador(Resource):
                     correo=request.json['correo']).all()
                 for admin in admins:
                     if admin.password == request.json['password']:
+                        session['correo'] = request.json['correo']
+                        correo = escape(session['correo'])
+                        visits = store.hincrby(correo, 'visits', 1)
                         return {'success': 'true', 'id': admin.id}
         return {'success': 'false'}
 
@@ -207,27 +205,6 @@ class TodosLosConcursos(Resource):
             'message': 'Concurso creado exitosamente.',
             'id': f'{id_admin}|{id}'
         }
-        """
-            print(str(e))
-        nuevo_concurso = Concursos(
-                id_admin = request.json['id_admin'],
-                nombre = request.json['nombre'],
-                path_banner = f"/files/imagen/{nom_img}.{ext}",
-                fecha_inicio = datetime.strptime(request.json['fecha_inicio'],"%d/%m/%Y"),
-                fecha_fin = datetime.strptime(request.json['fecha_fin'],"%d/%m/%Y"),
-                valor_premio = request.json['valor_premio'],
-                guion = request.json['guion'],
-                recomendaciones = request.json['recomendaciones'],
-                url = request.json['url']
-        )
-        db.session.add(nuevo_concurso)
-        db.session.commit()
-        return {
-            'message':'Concurso creado exitosamente.',
-            'id':nuevo_concurso.id
-            }
-"""
-
 
 class getConcursoID(Resource):
     def get(self, id_concurso):
