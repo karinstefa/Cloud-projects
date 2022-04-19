@@ -1,3 +1,3 @@
 #!/bin/bash
 sudo apt install apache2
-cp Cloud-project/frontend/ /var/www/html
+cp Cloud-projects/frontend/ /var/www/html
