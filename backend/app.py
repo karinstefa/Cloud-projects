@@ -409,7 +409,7 @@ def test():
 
 @app.route("/voces/original/<id_voz>")
 def obtenerVozOriginal(id_voz):
-    table = dynamodb.Table('concurso')
+    table = dynamodb.Table('voz')
     response = table.query(
         KeyConditionExpression=Key('pk').eq(
             'voz#voz') & Key('sk').eq(id_voz)
