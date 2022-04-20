@@ -409,12 +409,19 @@ def test():
 
 @app.route("/voces/original/<id_voz>")
 def obtenerVozOriginal(id_voz):
-    voz = Voces.query.get_or_404(id_voz)
+    table = dynamodb.Table('concurso')
+    response = table.query(
+        KeyConditionExpression=Key('pk').eq(
+            'voz#voz') & Key('sk').eq(id_voz)
+    )
+    voz = response['Items'][0]
+    ext = voz['info']['path_original'].split('.')[-1]
+    s31.Bucket(bucket_name).download_file(voz['info']['path_original'], f'tmp/vz_{id_voz}.{ext}')
     voz_enviar = ''
     try:
-        [name, ext] = voz.path_original.split('.')
+        [name, ext] = voz['info']['path_original'].split('.')
         voz_64 = ''
-        with open(voz.path_original, "rb") as voz_file:
+        with open(f'tmp/vz_{id_voz}.{ext}', "rb") as voz_file:
             voz_64 = base64.b64encode(voz_file.read())
         voz_enviar = f'data:audio/{ext};base64,'+voz_64.decode('utf-8')
     except Exception as e:
