@@ -240,6 +240,7 @@ class UnConcurso(Resource):
                 'concurso#concurso') & Key('sk').begins_with(id_concurso)
         )
         concurso = [row['info'] for row in response['Items']]
+        print(concurso)
         return concursos_schema.dump(concurso)
 
     def put(self, id_concurso):
@@ -388,7 +389,7 @@ class UnaVoz(Resource):
         return 'Se borro exitosamente la voz', 204
 
 
-# Endpoints Administrador
+UnConcurso# Endpoints Administrador
 api.add_resource(RegistrarAdministrador, '/administrador')
 api.add_resource(ValidarAdministrador, '/validar_administrador')
 
