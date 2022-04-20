@@ -214,8 +214,8 @@ class getConcursoID(Resource):
             KeyConditionExpression=Key('pk').eq(
                 'concurso#concurso') & Key('sk').eq(id_concurso)
         )
-        print(response)
         concurso = response['Items']
+        print(concurso)
         ext = concurso['info']['path_banner'].split('.')[-1]
         #Download object to the file    
         s31.Bucket(bucket_name).download_file(concurso['info']['path_banner'],f'tmp/Im_{id_concurso}.{ext}')
