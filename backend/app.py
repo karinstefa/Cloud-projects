@@ -214,7 +214,8 @@ class getConcursoID(Resource):
             KeyConditionExpression=Key('pk').eq(
                 'concurso#concurso') & Key('sk').eq(id_concurso)
         )
-        concurso = response['Items'][0]
+        print(response)
+        concurso = response['Items']
         ext = concurso['info']['path_banner'].split('.')[-1]
         #Download object to the file    
         s31.Bucket(bucket_name).download_file(concurso['info']['path_banner'],f'tmp/Im_{id_concurso}.{ext}')
@@ -242,6 +243,7 @@ class UnConcurso(Resource):
                 'concurso#concurso') & Key('sk').begins_with(id_concurso)
         )
         concurso = [row['info'] for row in response['Items']]
+        print(concurso)
         return concursos_schema.dump(concurso)
 
     def put(self, id_concurso):
