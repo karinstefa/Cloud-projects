@@ -251,8 +251,10 @@ class UnConcurso(Resource):
             KeyConditionExpression=Key('pk').eq(
                 'concurso#concurso') & Key('sk').eq(id_concurso)
         )
+
         if response['Items']:
             concurso = response['Items'][0]['info']
+            print(concurso)
             concurso.update(request.json)
             table.update_item(
                 Key={'pk': 'concurso#concurso', 'sk': id_concurso},
