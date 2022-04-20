@@ -235,6 +235,7 @@ class getConcursoID(Resource):
 
 class UnConcurso(Resource):
     def get(self, id_concurso):
+        print(id_concurso)
         table = dynamodb.Table('concurso')
         response = table.query(
             KeyConditionExpression=Key('pk').eq(
