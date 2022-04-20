@@ -100,12 +100,14 @@ if 'Messages' in response:
                 print(result)
                 
                 # %% 7 actualizar estado en bd
+                row = responseDB['Items'][0]['info']
+                row.update({'estado': '1'})
                 table.update_item(
                     Key={'pk': 'voz#voz', 'sk': id_voz},
                     AttributeUpdates={
                         'info': {
                             "Action": "PUT",
-                            'Value': {'estado': '1'}
+                            'Value': row
                         }
                     }
                 )
