@@ -254,7 +254,7 @@ class UnConcurso(Resource):
 
         if response['Items']:
             concurso = response['Items'][0]['info']
-            request.json.update({f"path_banner': {concurso['path_banner']}"})
+            request.json.update({'path_banner': f"{concurso['path_banner']}"})
             print(request.json)
             concurso.update(request.json)
             table.update_item(
