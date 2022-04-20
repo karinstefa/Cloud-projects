@@ -254,7 +254,7 @@ class UnConcurso(Resource):
 
         if response['Items']:
             concurso = response['Items'][0]['info']
-            print(concurso)
+            print(request.json)
             concurso.update(request.json)
             table.update_item(
                 Key={'pk': 'concurso#concurso', 'sk': id_concurso},
