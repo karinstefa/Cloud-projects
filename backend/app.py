@@ -214,7 +214,7 @@ class getConcursoID(Resource):
             KeyConditionExpression=Key('pk').eq(
                 'concurso#concurso') & Key('sk').eq(id_concurso)
         )
-        concurso = response['Items']
+        concurso = response['Items'][0]
         print(concurso)
         ext = concurso['info']['path_banner'].split('.')[-1]
         #Download object to the file    
