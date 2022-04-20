@@ -414,6 +414,7 @@ def obtenerVozOriginal(id_voz):
         KeyConditionExpression=Key('pk').eq(
             'voz#voz') & Key('sk').eq(id_voz)
     )
+    print(response)
     voz = response['Items'][0]
     ext = voz['info']['path_original'].split('.')[-1]
     s31.Bucket(bucket_name).download_file(voz['info']['path_original'], f'tmp/vz_{id_voz}.{ext}')
