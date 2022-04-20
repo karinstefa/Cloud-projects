@@ -198,7 +198,7 @@ class TodosLosConcursos(Resource):
                         'fecha_fin': request.json['fecha_fin'],
                         'valor_premio': str(request.json['valor_premio']),
                         'guion': request.json['guion'],
-                        'recomendacion': request.json['recomendaciones'],
+                        'recomendaciones': request.json['recomendaciones'],
                         'url': request.json['url']}
                }
         dynamodb.Table('concurso').put_item(Item=row)
