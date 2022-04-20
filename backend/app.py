@@ -414,7 +414,6 @@ def obtenerVozOriginal(id_voz):
         KeyConditionExpression=Key('pk').eq(
             'voz#voz') & Key('sk').eq(id_voz)
     )
-    print(response)
     voz = response['Items'][0]
     ext = voz['info']['path_original'].split('.')[-1]
     s31.Bucket(bucket_name).download_file(voz['info']['path_original'], f'tmp/vz_{id_voz}.{ext}')
@@ -439,20 +438,21 @@ def obtenerVozOriginal(id_voz):
 
 @app.route("/voces/convertido/<id_voz>")
 def obtenerVozConvertido(id_voz):
-    voz = Voces.query.get_or_404(id_voz)
+    table = dynamodb.Table('voz')
+    response = table.query(
+        KeyConditionExpression=Key('pk').eq(
+            'voz#voz') & Key('sk').eq(id_voz)
+    )
+    voz = response['Items'][0]
+    ext = voz['info']['path_convertido'].split('.')[-1]
+    s31.Bucket(bucket_name).download_file(voz['info']['path_convertido'], f'tmp/vz_{id_voz}.{ext}')
     voz_enviar = ''
     try:
-        if (voz.estado == 1):
-            [name, ext] = voz.path_convertido.split('.')
-            voz_64 = ''
-            with open(voz.path_convertido, "rb") as voz_file:
-                voz_64 = base64.b64encode(voz_file.read())
-            voz_enviar = f'data:audio/{ext};base64,'+voz_64.decode('utf-8')
-        else:
-            return jsonify({
-                'success': False,
-                'message': 'Audio no convertido'
-            })
+        [name, ext] = voz['info']['path_convertido'].split('.')
+        voz_64 = ''
+        with open(f'tmp/vz_{id_voz}.{ext}', "rb") as voz_file:
+            voz_64 = base64.b64encode(voz_file.read())
+        voz_enviar = f'data:audio/{ext};base64,' + voz_64.decode('utf-8')
     except Exception as e:
         return jsonify({
             'success': False,

@@ -101,7 +101,7 @@ if 'Messages' in response:
                 
                 # %% 7 actualizar estado en bd
                 row = responseDB['Items'][0]['info']
-                row.update({'estado': '1'})
+                row.update({'estado': '1','path_convertido':f"files/voz/{name}.mp3"})
                 table.update_item(
                     Key={'pk': 'voz#voz', 'sk': id_voz},
                     AttributeUpdates={
