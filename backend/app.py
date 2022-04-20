@@ -240,8 +240,8 @@ class UnConcurso(Resource):
                 'concurso#concurso') & Key('sk').begins_with(id_concurso)
         )
         concurso = [row['info'] for row in response['Items']]
-        print(concurso)
-        return concursos_schema.dump(concurso[0])
+        print(concurso[0])
+        return concursos_schema.dump(concurso)
 
     def put(self, id_concurso):
         # VALIDAR EL REQUEST QUE TRAE EL FRONT, ES DECIR VER SI TRAE CAMPOS VACIOS
