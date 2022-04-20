@@ -189,8 +189,8 @@ class TodosLosConcursos(Resource):
         id = uuid.uuid1()
         id_admin = request.json['id_admin']
         row = {'pk': 'concurso#concurso',
-               'sk': f'{id_admin}|{id}',
-               'info': {'id': f'{id_admin}|{id}',
+               'sk': f'{id_admin}_{id}',
+               'info': {'id': f'{id_admin}_{id}',
                         'id_admin': id_admin,
                         'nombre': request.json['nombre'],
                         'path_banner': f"files/imagen/{nom_img}.{ext}",
@@ -204,7 +204,7 @@ class TodosLosConcursos(Resource):
         dynamodb.Table('concurso').put_item(Item=row)
         return {
             'message': 'Concurso creado exitosamente.',
-            'id': f'{id_admin}|{id}'
+            'id': f'{id_admin}_{id}'
         }
 
 class getConcursoID(Resource):
@@ -288,8 +288,8 @@ class TodosLasVoces(Resource):
         ext = tipo.split(';')[0].split('/')[-1]
         id_concurso = request.json['id_concurso']
         row = {'pk': 'voz#voz',
-               'sk': f'{id_concurso}|{id}',
-               'info': {'id': f'{id_concurso}|{id}',
+               'sk': f'{id_concurso}_{id}',
+               'info': {'id': f'{id_concurso}_{id}',
                         'id_concurso': id_concurso,
                         'nombres': request.json['nombres'],
                         'apellidos': request.json['apellidos'],
@@ -332,13 +332,13 @@ class TodosLasVoces(Resource):
             if response.status_code == 200:
                 return {
                     'message': 'Voz creada exitosamente',
-                    'id_voz': f'{id_concurso}|{id}'
+                    'id_voz': f'{id_concurso}_{id}'
                 }
             else:
                 return {'message': 'No se pudo crear la voz'}
         return {
             'message': 'Voz creada exitosamente.',
-            'id_voz': f'{id_concurso}|{id}'
+            'id_voz': f'{id_concurso}_{id}'
         }
 
 
