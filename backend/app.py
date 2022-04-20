@@ -216,7 +216,9 @@ class getConcursoID(Resource):
         )
         concurso = response['Items'][0]
         ext = concurso['info']['path_banner'].split('.')[-1]
-        #Download object to the file    
+        #Download object to the file
+        print(concurso['info']['path_banner'])
+        print(f'tmp/Im_{id_concurso}.{ext}')
         s31.Bucket(bucket_name).download_file(concurso['info']['path_banner'],f'tmp/Im_{id_concurso}.{ext}')
         img_64 = ''
         with open(f'tmp/Im_{id_concurso}.{ext}', "rb") as image_file:
