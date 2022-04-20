@@ -215,7 +215,6 @@ class getConcursoID(Resource):
                 'concurso#concurso') & Key('sk').eq(id_concurso)
         )
         concurso = response['Items'][0]
-        print(concurso)
         ext = concurso['info']['path_banner'].split('.')[-1]
         #Download object to the file    
         s31.Bucket(bucket_name).download_file(concurso['info']['path_banner'],f'tmp/Im_{id_concurso}.{ext}')
@@ -229,21 +228,18 @@ class getConcursoID(Resource):
             )
         concurso['info'].update({'path_banner': f'data:image/{ext};base64,'+img_64.decode('utf-8')})
         os.remove(f'tmp/Im_{id_concurso}.{ext}')
-        print(concurso['info'])
         return concurso_schema.dump(concurso['info'])
         # return concurso_schema.dump(concurso)
 
 
 class UnConcurso(Resource):
     def get(self, id_concurso):
-        print(id_concurso)
         table = dynamodb.Table('concurso')
         response = table.query(
             KeyConditionExpression=Key('pk').eq(
                 'concurso#concurso') & Key('sk').begins_with(id_concurso)
         )
         concurso = [row['info'] for row in response['Items']]
-        print(concurso)
         return concursos_schema.dump(concurso)
 
     def put(self, id_concurso):
